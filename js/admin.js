@@ -5,12 +5,12 @@ const Adm = {
   t: 'akun',
   build(el) {
     const adm = isRole(...R_ADM); this.t = adm ? 'apotek' : 'akun';
-    el.innerHTML = '<div class="tabs">' + (adm ? '<button data-act="sttab" data-t="apotek" class="on">Apotek</button><button data-act="sttab" data-t="user">Pengguna</button>' : '') + '<button data-act="sttab" data-t="akun" class="' + (adm ? '' : 'on') + '">Akun & Perangkat</button><button data-act="sttab" data-t="tentang">Tentang</button></div><div class="card"><div id="stBody" class="cb"></div></div>';
+    el.innerHTML = '<div class="tabs">' + (adm ? '<button data-act="sttab" data-t="apotek" class="on">Apotek</button><button data-act="sttab" data-t="user">Pengguna</button><button data-act="sttab" data-t="email">Laporan Email</button>' : '') + '<button data-act="sttab" data-t="akun" class="' + (adm ? '' : 'on') + '">Akun & Perangkat</button><button data-act="sttab" data-t="tentang">Tentang</button></div><div class="card"><div id="stBody" class="cb"></div></div>';
   },
   setTab(t) { this.t = t; $$('#pg-pengaturan .tabs button').forEach(b => b.classList.toggle('on', b.dataset.t === t)); this.refresh(true); },
   refresh(force) {
     const el = $('#stBody'); if (!el) return; if (!force && document.activeElement && el.contains(document.activeElement) && document.activeElement.tagName !== 'BODY') return;
-    el[{ apotek: 'innerHTML', user: 'innerHTML', akun: 'innerHTML', tentang: 'innerHTML' }[this.t]] = this[this.t]();
+    el.innerHTML = this[this.t]();
   },
   apotek() {
     const c = S.cfg;
@@ -18,6 +18,20 @@ const Adm = {
   },
   user() {
     return '<div class="row-g"><span class="grow muted xs">Peran: Admin (semua), Apoteker (kasir, inventori, laporan, void), Kasir (kasir & riwayat), Gudang (inventori, mutasi, faktur).</span><button class="btn pri" data-act="usnew">＋ Pengguna</button></div><div class="tw"><table class="tbl"><thead><tr><th>ID karyawan</th><th>Nama</th><th>Peran</th><th>SIPA</th><th>Status</th><th></th></tr></thead><tbody>' + (S.users.map(u => '<tr><td class="m">' + esc(u.username) + '</td><td>' + esc(u.nama) + '</td><td>' + esc(u.role) + '</td><td>' + esc(u.no_sipa || '') + '</td><td><span class="badge ' + (u.aktif ? 'grn' : 'gry') + '">' + (u.aktif ? 'Aktif' : 'Nonaktif') + '</span></td><td class="r"><button class="btn sm" data-act="usedit" data-id="' + esc(u.id_user) + '">Ubah / reset PIN</button></td></tr>').join('') || '<tr><td colspan="6" class="empty">Memuat…</td></tr>') + '</tbody></table></div>';
+  },
+  _em: null, _emLoading: false,
+  email() {
+    if (!ONLINE) return '<div class="empty">Pengaturan laporan email membutuhkan koneksi internet.</div>';
+    const e = this._em;
+    if (!e) { if (!this._emLoading) { this._emLoading = true; call('email.get').then(r => { this._em = r.data; }).catch(er => { this._em = { err: er.message }; }).then(() => { this._emLoading = false; if (this.t === 'email') this.refresh(true); }); } return '<div class="muted">Memuat pengaturan…</div>'; }
+    if (e.err) return '<div class="err">' + esc(e.err) + '</div><div class="row-g"><button class="btn" data-act="emreload">Coba lagi</button></div>';
+    return '<p class="muted xs">Laporan dikirim otomatis ke email owner lewat akun Google pemilik aplikasi. Alamat email disimpan aman di server (tidak terlihat oleh Kasir/Gudang).</p>' + fld('emE', 'Email owner', e.email, { type: 'email', ph: 'owner@gmail.com', hint: 'Boleh email berbeda dari akun Google pemilik aplikasi.' }) +
+      '<label class="chk"><input type="checkbox" id="emS" ' + (e.shift ? 'checked' : '') + '> <span><b>Setiap penutupan kasir</b> — omzet, rekonsiliasi kas & selisih, metode bayar, produk terlaris</span></label>' +
+      '<label class="chk"><input type="checkbox" id="emM" ' + (e.minggu ? 'checked' : '') + '> <span><b>Rekap mingguan</b> — tiap Senin pukul 07.00 (Senin–Minggu lalu)</span></label>' +
+      '<label class="chk"><input type="checkbox" id="emB" ' + (e.bulan ? 'checked' : '') + '> <span><b>Rekap bulanan</b> — tiap tanggal 1 pukul 07.00 (bulan lalu)</span></label>' +
+      '<div class="row-g"><button class="btn pri" data-act="emsave">Simpan</button><button class="btn" data-act="emtest">✉ Kirim email uji</button><button class="btn" data-act="emsend" data-j="mingguan">Kirim rekap mingguan sekarang</button><button class="btn" data-act="emsend" data-j="bulanan">Kirim rekap bulanan sekarang</button></div>' +
+      '<div class="kv"><span>Email terakhir terkirim</span><b>' + esc(e.terakhir ? fmtDT(e.terakhir) : '—') + '</b></div><div class="kv"><span>Sisa kuota email Google hari ini</span><b>' + esc(e.kuota) + '</b></div>' +
+      '<p class="muted xs">Rekap berisi omzet, laba kotor, tren, produk terlaris, nilai persediaan, ED mendekat/expired, stok yang perlu dipesan, hutang PBF jatuh tempo, dan selisih kas shift. Jika email tidak masuk, cek folder Spam. Jika muncul pesan “izin”, jalankan <code>aktifkanLaporanEmail</code> di editor Apps Script lalu deploy versi baru.</p><div id="emMsg"></div>';
   },
   akun() {
     const w = Q.filter(o => o.st === 'WAIT').length, e = Q.filter(o => o.st === 'ERR').length;
@@ -36,6 +50,11 @@ const userForm = u => {
   u = u || {}; const w = openModal(mhead(u.id_user ? 'Ubah pengguna' : 'Pengguna baru') + '<div class="mb">' + fld('uU', 'ID karyawan (untuk login)', u.username, { req: 1, auto: 1, hint: 'Huruf/angka/titik/strip, 3–30 karakter' }) + fld('uN', 'Nama lengkap', u.nama, { req: 1 }) + fld('uR', 'Peran', u.role || 'Kasir', { sel: ['Admin', 'Apoteker', 'Kasir', 'Gudang'] }) + fld('uS', 'No. SIPA (apoteker)', u.no_sipa) + fld('uP', u.id_user ? 'PIN baru (kosongkan bila tidak diubah)' : 'PIN awal (min. 6 karakter)', '', { type: 'password' }) + '<label class="chk"><input type="checkbox" id="uA" ' + (u.aktif !== false ? 'checked' : '') + '> Akun aktif</label><div id="uE" class="err hidden"></div></div><div class="mf"><button class="btn" data-act="close">Batal</button><button class="btn pri" id="uOk">Simpan</button></div>', 'sm');
   $('#uOk', w).onclick = async () => { try { await call('user.save', { id_user: u.id_user, username: $('#uU', w).value, nama: $('#uN', w).value, role: $('#uR', w).value, no_sipa: $('#uS', w).value, password: $('#uP', w).value, aktif: $('#uA', w).checked }); closeModal(w); toast('Pengguna tersimpan ✓'); await sync(); Adm.refresh(true); } catch (e) { const x = $('#uE', w); x.textContent = e.offline ? 'Perlu internet.' : e.message; x.classList.remove('hidden'); } };
 };
+const emErr = e => { const m = e.offline ? 'Tidak ada internet.' : e.message; return /izin|permission|authori[sz]/i.test(m) ? m + ' — Jalankan aktifkanLaporanEmail di editor Apps Script, lalu deploy versi baru.' : m; };
+ACT.emreload = () => { Adm._em = null; Adm.refresh(true); };
+ACT.emsave = async () => { try { await call('email.save', { email: $('#emE').value.trim(), shift: $('#emS').checked, minggu: $('#emM').checked, bulan: $('#emB').checked }); Adm._em = null; toast('Pengaturan laporan email tersimpan ✓'); Adm.refresh(true); } catch (e) { toast(emErr(e), 'err', 7000); } };
+ACT.emtest = async () => { try { toast('Mengirim email uji…', 'ok', 1500); const r = await call('email.test', {}, { timeout: 60000 }); toast(r.message + ' ✓', 'ok', 5000); Adm._em = null; Adm.refresh(true); } catch (e) { toast(emErr(e), 'err', 8000); } };
+ACT.emsend = async el => { try { toast('Menyusun & mengirim rekap…', 'ok', 2500); const r = await call('email.kirim', { jenis: el.dataset.j }, { timeout: 120000 }); toast(r.message + ' ✓', 'ok', 5000); Adm._em = null; Adm.refresh(true); } catch (e) { toast(emErr(e), 'err', 8000); } };
 ACT.usnew = () => userForm(); ACT.usedit = el => userForm(S.users.find(x => x.id_user === el.dataset.id));
 ACT.stresync = () => { toast('Menyinkronkan penuh…', 'ok', 1500); flush().then(() => sync(true)); };
 ACT.stinstall = async () => { if (window.__bip) { window.__bip.prompt(); window.__bip = null; } };

@@ -1,5 +1,5 @@
 /* APOTEK GAMA · Service Worker — aplikasi tetap terbuka tanpa internet · © Arraihan Academy */
-const VER = 'gama-v1.0.0';
+const VER = 'gama-v1.1.0';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'css/style.css', 'js/config.js', 'js/util.js', 'js/store.js', 'js/net.js', 'js/logic.js', 'js/shell.js', 'js/pos.js', 'js/produk.js', 'js/pbf.js', 'js/laporan.js', 'js/data.js', 'js/admin.js', 'icons/icon-192.png', 'icons/icon-512.png'];
 const XLSX_URL = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
 self.addEventListener('install', e => {

@@ -1,4 +1,4 @@
-# APOTEK GAMA — Panduan Instalasi
+# APOTEK GAMA — Panduan Instalasi (v1.1.0)
 
 Kasir · Inventori · Gudang · FEFO · PBF · Import · Backup · Mode Offline  
 Lisensi / hak cipta © **Arraihan Academy**
@@ -158,6 +158,34 @@ FEFO otomatis · batch expired/karantina/retur tidak bisa dijual atau dimutasi �
 | Ubah kode backend tapi tidak berefek | Deploy → Manage deployments → New version |
 | Import lama: "tidak bisa dibuka" | Bagikan DB_ApotekKita ke akun pemilik APOTEK GAMA |
 | Perangkat tidak memuat versi baru | Naikkan `VER` di `sw.js`, push, lalu muat ulang 2 kali |
+| Email laporan tidak terkirim / muncul pesan "izin" | Jalankan `aktifkanLaporanEmail` di editor, lalu deploy New version (Bagian I) |
 | Lupa PIN Admin | Pakai **Akses darurat** di halaman login, lalu reset PIN di Pengaturan → Pengguna |
+
+---
+
+## BAGIAN I — Laporan email otomatis ke owner (v1.1)
+
+Tiga jenis laporan dikirim ke email owner:
+
+| Laporan | Kapan | Isi |
+|---|---|---|
+| **Tutup kasir** | Setiap shift ditutup | Omzet, laba kotor, rekonsiliasi kas (modal, seharusnya, fisik, **selisih**), per metode bayar, produk terlaris |
+| **Rekap mingguan** | Tiap **Senin 07.00** (Senin–Minggu lalu) | Omzet & tren vs minggu sebelumnya, omzet per hari/metode/kasir, 10 produk terlaris, nilai persediaan, ED mendekat/expired, stok perlu dipesan, hutang PBF jatuh tempo, selisih kas shift |
+| **Rekap bulanan** | Tiap **tanggal 1, 07.00** (bulan lalu) | Isi sama dengan mingguan untuk satu bulan |
+
+### Cara mengaktifkan (sekali saja)
+1. **Perbarui backend**: ganti isi `Kode.gs` **dan** `appsscript.json` di Apps Script dengan versi terbaru (ada izin baru `script.send_mail`).
+2. Pilih fungsi **`aktifkanLaporanEmail`** → **Run** → **Review permissions → Allow** (memberi izin kirim email & memasang jadwal Senin/tanggal 1).
+3. **Deploy → Manage deployments → ✏ → Version: New version → Deploy** (URL tidak berubah).
+4. **Perbarui frontend**: ganti berkas aplikasi dengan versi 1.1.0 (pertahankan `GAS_URL` di `js/config.js`), lalu `git add .` → `git commit -m "v1.1.0"` → `git push`.
+5. Di aplikasi (login **Admin**): **Pengaturan → Laporan Email** → isi email owner → centang laporan yang diinginkan → **Simpan** → **Kirim email uji**.
+
+Tombol **Kirim rekap mingguan/bulanan sekarang** dipakai untuk melihat contoh laporan kapan saja.
+
+### Catatan
+- Email dikirim lewat akun Google pemilik aplikasi (kuota akun Gmail biasa ±100 email/hari — jauh di atas kebutuhan).
+- Jika shift ditutup saat kasir **offline**, laporan terkirim setelah data tersinkron ke server.
+- Alamat email owner tersimpan di Script Properties (server), tidak terlihat oleh Kasir/Gudang. Email tidak masuk? Cek folder **Spam**.
+- Mematikan laporan: hapus centang di Pengaturan → Laporan Email → Simpan.
 
 © Arraihan Academy — seluruh hak cipta dilindungi.
