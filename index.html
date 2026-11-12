@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#059669">
+<meta name="description" content="APOTEK GAMA — Kasir, Inventori & Gudang apotek. © Arraihan Academy">
+<title>APOTEK GAMA — Kasir & Inventaris</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<script>try{var t=localStorage.getItem('gama_theme');if(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)t='dark';if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="boot"><div class="logo">💊</div><div class="spin"></div><div class="muted xs m">Memuat APOTEK GAMA…</div></div>
+
+<div id="login" class="hidden">
+  <form class="lcard" id="loginForm" autocomplete="off">
+    <div class="lhead"><div class="logo">💊</div><h1>APOTEK GAMA</h1><div class="cap">POS &amp; Inventory Terminal</div><span class="pill" id="netPill"><i class="dot"></i><span>Online</span></span></div>
+    <div id="lgCfg" class="err hidden">⚠ Konfigurasi belum lengkap: isi <b>GAS_URL</b> di <code>js/config.js</code> dengan URL Web App (/exec), lalu unggah ulang ke GitHub.</div>
+    <div class="fld"><label for="lgShift">SHIFT KERJA</label><select class="sel" id="lgShift"><option value="Pagi">Shift 1 (Pagi) — 07:00 s/d 14:30</option><option value="Sore">Shift 2 (Sore) — 14:30 s/d 22:00</option></select></div>
+    <div class="fld"><label for="lgUser">ID KARYAWAN <span class="req">*</span></label><input class="in m" id="lgUser" required autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="mis. kasir1"></div>
+    <div class="fld"><label for="lgPass">PIN / PASSWORD <span class="req">*</span></label><div class="ig"><input class="in m" id="lgPass" type="password" required placeholder="••••••••"><button type="button" class="ibtn" id="lgEye" aria-label="Tampilkan PIN">👁</button></div></div>
+    <div class="fld"><label for="lgCash">MODAL AWAL KAS LACI (RP)</label><input class="in m" id="lgCash" inputmode="numeric" value="300.000"><span class="hint">Untuk Admin/Apoteker/Kasir. Hitung fisik uang kembalian.</span></div>
+    <div id="lgErr" class="err hidden"></div>
+    <button class="btn pri lg" id="lgBtn" type="submit">🔓 MASUK &amp; BUKA SHIFT</button>
+    <div class="xs muted c" style="margin-top:12px">Lupa PIN? Hubungi Admin / Apoteker Penanggung Jawab.<br><a href="#" id="lgDarurat">Akses darurat</a> · © Arraihan Academy</div>
+  </form>
+</div>
+
+<div id="app" class="hidden">
+  <aside id="side">
+    <div class="sbrand"><div class="logo">💊</div><div><b>APOTEK GAMA</b><span id="sSia">Kasir &amp; Inventaris</span></div></div>
+    <nav id="nav" aria-label="Menu utama"></nav>
+    <div class="sfoot"><div class="ucard"><div class="av" id="uAv">AG</div><div><b id="uName">—</b><span id="uSub">—</span></div></div><button class="btn gh" data-act="logout" style="color:#fca5a5;width:100%;justify-content:flex-start">⏻ Tutup Shift / Keluar</button></div>
+  </aside>
+  <div id="scrim" data-act="burger"></div>
+  <div id="main">
+    <header id="top">
+      <button class="ibtn" id="burger" data-act="burger" aria-label="Menu">☰</button>
+      <div class="ttl"><h1 id="pTitle">Dashboard</h1><div class="sub" id="pSub"></div></div>
+      <div class="tact">
+        <span class="pill hid-s hidden" id="shiftPill"><i class="dot"></i><span>Shift aktif</span></span>
+        <button class="ibtn" data-act="queue" aria-label="Antrean sinkron" title="Antrean sinkron">📤<span class="nb hidden" id="qBadge">0</span></button>
+        <button class="ibtn" id="btnTheme" data-act="theme" aria-label="Ganti tema">🌙</button>
+        <button class="ibtn" id="btnBell" data-act="bell" aria-label="Notifikasi">🔔<span class="nb hidden" id="bellN">0</span></button>
+      </div>
+    </header>
+    <div id="pages">
+      <section class="pg" id="pg-dashboard"></section><section class="pg" id="pg-pos"></section><section class="pg" id="pg-riwayat"></section>
+      <section class="pg" id="pg-produk"></section><section class="pg" id="pg-gudang"></section><section class="pg" id="pg-pbf"></section>
+      <section class="pg" id="pg-laporan"></section><section class="pg" id="pg-data"></section><section class="pg" id="pg-pengaturan"></section>
+    </div>
+    <footer id="status" data-act="queue"><span id="stSync" class="stsync ok"><i class="sd"></i><span>Memuat…</span></span><span class="sp"></span><span class="hid-s">APOTEK GAMA v1.0.0 · © Arraihan Academy</span></footer>
+  </div>
+</div>
+<div id="mroot"></div><div id="toasts" aria-live="polite"></div><div id="print-root"></div>
+
+<script src="js/config.js" defer></script><script src="js/util.js" defer></script><script src="js/store.js" defer></script><script src="js/net.js" defer></script><script src="js/logic.js" defer></script><script src="js/shell.js" defer></script>
+<script src="js/pos.js" defer></script><script src="js/produk.js" defer></script><script src="js/pbf.js" defer></script><script src="js/laporan.js" defer></script><script src="js/data.js" defer></script><script src="js/admin.js" defer></script>
+<script>window.addEventListener('DOMContentLoaded',function(){boot().catch(function(e){console.error(e);document.getElementById('boot').innerHTML='<div class="err" style="max-width:420px">Gagal memuat aplikasi: '+String(e&&e.message||e)+'</div>';});});</script>
+</body>
+</html>
